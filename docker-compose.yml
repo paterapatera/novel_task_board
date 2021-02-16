@@ -10,4 +10,5 @@ services:
       - ./:/home/node/app
     ports:
       - "3000:3000"
+      - "6006:6006"
     command: yarn dev
