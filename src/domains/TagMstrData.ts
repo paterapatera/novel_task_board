@@ -1,5 +1,6 @@
 import { Record } from 'immutable';
 
-export default class TagData extends Record({
+export default class extends Record({
+    id: '',
     name: '',
 }) { }

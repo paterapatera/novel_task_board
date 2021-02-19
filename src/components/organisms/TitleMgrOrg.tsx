@@ -1,31 +1,29 @@
 import NImage from 'next/image'
-import moment from 'moment'
 import { Grid, Typography, Link, Box, Chip, Button } from '@material-ui/core'
 import type { GridProps, TypographyProps, LinkProps, ButtonProps, ChipProps } from '@material-ui/core'
 import { styled } from '@material-ui/core/styles';
 import { Add as AddIcon, Delete as DeleteIcon } from '@material-ui/icons'
 import { truncateString, DateFormat } from '@/utils/core'
-import TagData from '@/domains/TagData'
+import TitleData from '@/domains/TitleData'
 
-type TitleT = { id: string; title: string; description: string; updated: moment.Moment; image: string; tags: TagData[]; }
 type CommandT = { addOnClick: () => void; deleteOnClick: () => void; }
-export type TitleListProps = { titleList: TitleT[]; command: CommandT }
+export type TitleMgrOrgProps = { titleList: TitleData[]; command: CommandT }
 
-export const TitleList = ({ titleList, command }: TitleListProps): JSX.Element =>
+export const TitleMgrOrg = ({ titleList, command }: TitleMgrOrgProps): JSX.Element =>
   <>
-    <CommandList>
+    <Commands>
       <AddButton onClick={command.addOnClick}>追加</AddButton>
       <DeleteButton onClick={command.deleteOnClick}>削除</DeleteButton>
-    </CommandList>
+    </Commands>
     <Titles>
-      {titleList.map(({ id, title, description, updated, image, tags }) => {
-        const href = '/task-board/' + id
-        return <Title key={id}>
-          <Image src={image} href={href}></Image>
-          <TitleName href={href}>{title}</TitleName>
-          <Description>{truncateString(description, 150)}</Description>
-          <TagList tags={tags} />
-          <Updated>更新日: {updated.format(DateFormat)}</Updated>
+      {titleList.map((title) => {
+        const href = '/task-board/' + title.id
+        return <Title key={title.id}>
+          <Image src={title.image} href={href}></Image>
+          <TitleName href={href}>{title.name}</TitleName>
+          <Description>{truncateString(title.description, 150)}</Description>
+          <Tags>{title.tags.map((tag, i) => <Tag key={i} label={tag.name} />)}</Tags>
+          <Updated>更新日: {title.updated.format(DateFormat)}</Updated>
         </Title>
       })}
     </Titles>
@@ -59,13 +57,8 @@ const Tags = styled(Box)(({ theme }) => ({
   },
 }))
 
-const TagList = ({ tags }: { tags: TagData[] }) =>
-  <Tags>
-    {tags.map((tag, i) => <Tag key={i} label={tag.name} />)}
-  </Tags>
-
 // ボタン
-const CommandList = styled(Box)(({ theme }) => ({
+const Commands = styled(Box)(({ theme }) => ({
   margin: theme.spacing(3, 0),
   '& > *': {
     margin: theme.spacing(0, 1),
