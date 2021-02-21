@@ -17,3 +17,6 @@ export default class TitleData extends Record<{
     tags: [],
     updated: moment('2000-01-01T00:00:00+09:00'),
 }) { }
+
+export { default as TagData } from '@/domains/TitleData/TagData'
+export { default as TitleRepo } from '@/domains/TitleData/Repo'

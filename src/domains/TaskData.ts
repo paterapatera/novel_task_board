@@ -6,3 +6,5 @@ export default class extends Record({
     priority: 0,
     memo: '',
 }) { }
+
+export { default as TaskRepo } from '@/domains/TaskData/Repo'

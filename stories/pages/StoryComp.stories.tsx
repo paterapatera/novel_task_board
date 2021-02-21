@@ -5,9 +5,8 @@ import { range } from '@/utils/core'
 import moment from 'moment'
 import { StoryCompTmpl, StoryCompTmplProps } from '@/components/templates/StoryCompTmpl';
 import TagMstrData from '@/domains/TagMstrData'
-import TagData from '@/domains/TitleData/TagData'
-import TitleData from '@/domains/TitleData'
-import TaskData from '@/domains/TaskData'
+import TitleData, { TagData } from '@/domains/TitleData'
+import TaskData, { TaskRepo } from '@/domains/TaskData'
 
 const args: StoryCompTmplProps = {
   storyCompTmplProps: {
@@ -25,19 +24,9 @@ const args: StoryCompTmplProps = {
       image: '/test/testThumb.png',
       tags: [new TagData({ name: 'アドベンチャー' }), new TagData({ name: 'SF' }), new TagData({ name: 'コメディー' }), new TagData({ name: 'ファミリー向け' })],
     }),
-    command: {
-      saveOnClick: (title, values) =>
-        new Promise((ok) => setTimeout(ok, 500))
-          .then(action(JSON.stringify(values)))
-          .then(action(JSON.stringify(title))),
-      tagOnClick: async (id) => action('tagOnClick')(id)
-    },
+    command: { saveTitle: null },
     tasks: [],
-    taskCommand: {
-      moveTask: action('moveTask'),
-      moveTaskGroup: action('moveTaskGroup'),
-      saveTask: action('saveTask'),
-    },
+    taskRepo: { moveTask: null, moveTaskGroup: null, deleteTask: null, addTask: null, updateMemo: null, saveTask: null },
   }
 }
 
@@ -46,7 +35,7 @@ export default {
 } as Meta
 
 export const IndexStory: Story<StoryCompTmplProps> = (props) => {
-  const [tasks, setTasks] = useState<TaskData[]>([
+  const [tasks, updateTasks] = useState<TaskData[]>([
     new TaskData({ id: 'a1', priority: 0, group: 'A', memo: "1aaa\nbbbbbbb\nccccc" }),
     new TaskData({ id: 'a2', priority: 1, group: 'A', memo: "2aaa\nbbbbbbb\nccccc" }),
     new TaskData({ id: 'a3', priority: 2, group: 'A', memo: "3aaa\nbbbbbbb\nccccc" }),
@@ -55,48 +44,33 @@ export const IndexStory: Story<StoryCompTmplProps> = (props) => {
     new TaskData({ id: 'c2', priority: 1, group: 'C', memo: "6aaa\nbbbbbbb\nccccc" }),
     new TaskData({ id: 'd1', priority: 0, group: 'D', memo: "7aaa\nbbbbbbb\nccccc" }),
   ]);
-  const taskCommand = {
-    moveTask: (id: string, dropPriority: number) => {
-      const task = tasks.find((t) => t.id === id)
-      if (task.priority === dropPriority) return
-      const newTasks = tasks
-        .sort((a, b) => a.priority - b.priority)
-        .filter((t) => t.group === task.group)
-        .flatMap((t, i) => {
-          if (t.id === task.id)
-            return []
-          else if (t.priority !== dropPriority)
-            return [t.set('priority', i)]
-          else if (task.priority > t.priority)
-            return [task.set('priority', -1), t.set('priority', i)]
-          else
-            return [t.set('priority', i), task.set('priority', -1)]
-        })
-        .map((t, i) => t.set('priority', i))
-      const filteredTasks = tasks
-        .filter((t) => t.group !== task.group)
-      action('dropPriority: ' + dropPriority + ', ' + JSON.stringify(task) + ', ' + JSON.stringify([...filteredTasks, ...newTasks]))()
-      setTasks([...filteredTasks, ...newTasks])
-    },
-    moveTaskGroup: (id: string, group: string) => {
-      const task = tasks.find((t) => t.id === id)
-      if (task.group === group) return
-      const oldGroup = task.group
-      const newTasks = [...tasks.filter((t) => t.id !== id), task.merge({ group, priority: -1 })]
-      const oldGroupTasks = newTasks
-        .filter((t) => t.group === oldGroup)
-        .map((t, i) => t.set('priority', i))
-      const newGroupTasks = newTasks
-        .filter((t) => t.group === group)
-        .map((t, i) => t.set('priority', i))
-      const filteredTasks = tasks
-        .filter((t) => t.group !== oldGroup && t.group !== group)
-      action('group: ' + group + ', ' + JSON.stringify(task) + ', ' + JSON.stringify([...filteredTasks, ...oldGroupTasks, ...newGroupTasks]))()
-      setTasks([...filteredTasks, ...oldGroupTasks, ...newGroupTasks])
-    },
-    saveTask: action('saveTask'),
+  const [title] = useState<TitleData>(new TitleData({
+    id: 'aaa',
+    name: 'バック・トゥ・ザ・フューチャー',
+    description: range(0, 12).map(() => '未来に行って戻ってくる話').join(''),
+    updated: moment('2000-01-01T00:00:00+09:00'),
+    image: '/test/testThumb.png',
+    tags: [new TagData({ name: 'アドベンチャー' }), new TagData({ name: 'SF' }), new TagData({ name: 'コメディー' }), new TagData({ name: 'ファミリー向け' })],
+  }));
+  const p = {
+    ...props, storyCompTmplProps: {
+      ...props.storyCompTmplProps, tasks, title,
+      taskRepo: {
+        moveTask: TaskRepo.moveTask(tasks, updateTasks),
+        moveTaskGroup: TaskRepo.moveTaskGroup(tasks, updateTasks),
+        deleteTask: TaskRepo.deleteTask('titleId1', tasks, updateTasks, action('saveTask')),
+        addTask: TaskRepo.addTask('titleId1', tasks, updateTasks, action('saveTask')),
+        updateMemo: TaskRepo.updateMemo('titleId1', tasks, updateTasks, action('saveTask')),
+        saveTask: TaskRepo.saveAll('titleId1', tasks, action('saveTask')),
+      },
+      command: {
+        saveTitle: (title, values) =>
+          new Promise((ok) => setTimeout(ok, 500))
+            .then(action(JSON.stringify(values)))
+            .then(action(JSON.stringify(title))),
+      },
+    }
   }
-  const p = { ...props, storyCompTmplProps: { ...props.storyCompTmplProps, tasks, taskCommand } }
   return <StoryCompTmpl {...p} />
 }
 IndexStory.args = args

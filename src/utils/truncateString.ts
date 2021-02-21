@@ -1,8 +1,8 @@
-export default (str: string, len: number) => {
+export default (str: string, len: number): string => {
     let result = 0;
     let text = '';
     for (let i = 0; i < str.length; i++) {
-        let chr = str.charCodeAt(i);
+        const chr = str.charCodeAt(i);
         if (
             (chr >= 0x00 && chr < 0x81) ||
             chr === 0xf8f0 ||
