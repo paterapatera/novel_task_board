@@ -1,19 +1,23 @@
+import React from 'react'
 import NImage from 'next/image'
 import { Grid, Typography, Link, Box, Chip, Button } from '@material-ui/core'
 import type { GridProps, TypographyProps, LinkProps, ButtonProps, ChipProps } from '@material-ui/core'
 import { styled } from '@material-ui/core/styles';
 import { Add as AddIcon, Delete as DeleteIcon } from '@material-ui/icons'
-import { truncateString, DateFormat } from '@/utils/core'
-import TitleData from '@/domains/TitleData'
+import { truncateString, DateFormat, uuid } from '@/utils/core'
+import TitleData, { TitleRepo } from '@/domains/TitleData'
+import moment from 'moment'
 
-type CommandT = { addOnClick: () => void; deleteOnClick: () => void; }
+type CommandT = {
+  addTitle: ReturnType<typeof TitleRepo.addTitle>;
+  deleteTitle: ReturnType<typeof TitleRepo.deleteTitle>;
+}
 export type TitleMgrOrgProps = { titleList: TitleData[]; command: CommandT }
 
 export const TitleMgrOrg = ({ titleList, command }: TitleMgrOrgProps): JSX.Element =>
   <>
     <Commands>
-      <AddButton onClick={command.addOnClick}>追加</AddButton>
-      <DeleteButton onClick={command.deleteOnClick}>削除</DeleteButton>
+      <AddButton onClick={() => command.addTitle(new TitleData({ id: uuid(), name: 'New Title', updated: moment() }))}>追加</AddButton>
     </Commands>
     <Titles>
       {titleList.map((title) => {
@@ -24,6 +28,7 @@ export const TitleMgrOrg = ({ titleList, command }: TitleMgrOrgProps): JSX.Eleme
           <Description>{truncateString(title.description, 150)}</Description>
           <Tags>{title.tags.map((tag, i) => <Tag key={i} label={tag.name} />)}</Tags>
           <Updated>更新日: {title.updated.format(DateFormat)}</Updated>
+          <DeleteButton onClick={() => command.deleteTitle(title.id)}>削除</DeleteButton>
         </Title>
       })}
     </Titles>
