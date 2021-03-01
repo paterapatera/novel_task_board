@@ -4,11 +4,10 @@ import type { ButtonProps, ChipProps } from '@material-ui/core'
 import { styled } from '@material-ui/core/styles';
 import { Save as SaveIcon, Add as AddIcon } from '@material-ui/icons'
 import TagMstrData from '@/domains/TagMstrData'
-import TitleData from '@/domains/TitleData'
+import TitleData, { TagData } from '@/domains/TitleData'
 import TaskData, { TaskRepo } from '@/domains/TaskData'
 import { Task, Board } from '@/components/molecules/StoryCompMol'
 import type { TaskRepoT } from '@/components/molecules/StoryCompMol'
-import { uuid } from '@/utils/core'
 import { Formik, Form, Field } from 'formik';
 import { TextField } from 'formik-material-ui';
 import * as yup from 'yup';
@@ -18,11 +17,9 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 
 yup.setLocale(ja.descriptive)
 type CommandT = {
-  saveTitle: (title: TitleData, values: {
-    name: string;
-    description: string;
-    tags: string
-  }) => Promise<void>;
+  saveTitle: (title: TitleData) => void;
+  id: () => string;
+  updated: () => moment.Moment;
 }
 
 export type StoryCompOrgProps = { title: TitleData; tags: TagMstrData[]; tasks: TaskData[]; command: CommandT; taskRepo: TaskRepoT; }
@@ -32,8 +29,8 @@ export const StoryCompOrg = ({ title, tags, tasks, command, taskRepo }: StoryCom
   return <>
     <Formik {...formData}
       initialValues={{ name: title.name, description: title.description, tags: title.tags.map((tag) => tag.name).join(), }}
-      onSubmit={async (values, { setSubmitting }) => {
-        await command.saveTitle(title, values)
+      onSubmit={(values, { setSubmitting }) => {
+        command.saveTitle(title.merge({ ...values, updated: command.updated(), tags: values.tags.split(',').map((name) => new TagData({ name })) }))
         setSubmitting(false);
       }}
     >
@@ -51,7 +48,7 @@ export const StoryCompOrg = ({ title, tags, tasks, command, taskRepo }: StoryCom
             <ExpandButton onClick={() => setState({ ...state, isShowTitleEdit: !state.isShowTitleEdit })}>展開</ExpandButton>
           </Commands>
           <Commands>
-            <AddButton onClick={() => taskRepo.addTask(uuid(), 'A')}>追加</AddButton>
+            <AddButton onClick={() => taskRepo.addTask(command.id(), 'A')}>追加</AddButton>
           </Commands>
           <DndProvider backend={HTML5Backend}>
             {[
@@ -62,7 +59,7 @@ export const StoryCompOrg = ({ title, tags, tasks, command, taskRepo }: StoryCom
             ].map((v, i) => <Board key={i} group={v.group} name={v.name} taskRepo={taskRepo}>
               {tasks.filter(TaskRepo.groupFilter(v.group))
                 .sort(TaskRepo.prioritySort)
-                .map((task, i) => <Task key={i} id={task.id} priority={task.priority} group={task.group} memo={task.memo} taskRepo={taskRepo} />)}
+                .map((task, i) => <Task key={i} id={task.id} priority={task.priority} group={task.groupName} memo={task.memo} taskRepo={taskRepo} />)}
             </Board>)}
           </DndProvider>
         </>

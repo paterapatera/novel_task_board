@@ -68,6 +68,7 @@
     "jest-watch-typeahead": "^0.6.1",
     "lint-staged": "^10.0.10",
     "prettier": "^2.0.2",
+    "storybook-addon-apollo-client": "^4.0.6",
     "typescript": "^4.1.3"
   }
 }

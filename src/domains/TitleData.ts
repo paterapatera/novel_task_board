@@ -1,7 +1,14 @@
 import { Record } from 'immutable';
 import moment from 'moment'
 import TagData from './TitleData/TagData'
-
+export type TitleQueryT = {
+    id: string;
+    name: string;
+    description: string;
+    updated: string;
+    image: string;
+    tags: string;
+}
 export default class TitleData extends Record<{
     id: string;
     name: string;

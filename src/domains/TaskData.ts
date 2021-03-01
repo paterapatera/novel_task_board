@@ -1,8 +1,16 @@
 import { Record } from 'immutable';
 
+export type TaskQueryT = {
+    id: string;
+    titleId: string;
+    groupName: string;
+    priority: number;
+    memo: string;
+}
 export default class extends Record({
     id: '',
-    group: '',
+    titleId: '',
+    groupName: '',
     priority: 0,
     memo: '',
 }) { }

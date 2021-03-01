@@ -9,14 +9,14 @@ import * as yup from 'yup';
 import * as ja from 'yup-locale-ja';
 
 yup.setLocale(ja.descriptive)
-type CommandT = { addOnClick: (values: { tagName: string }) => Promise<void>; deleteOnClick: (id: string) => Promise<void>; }
+type CommandT = { addOnClick: (values: TagMstrData) => void; deleteOnClick: (id: string) => void; id: () => string }
 export type TagMgrOrgProps = { tags: TagMstrData[]; command: CommandT }
 
 export const TagMgrOrg = ({ tags, command }: TagMgrOrgProps): JSX.Element => {
   return <>
     <Formik {...formData}
       onSubmit={async (values, { setSubmitting }) => {
-        await command.addOnClick(values)
+        await command.addOnClick(new TagMstrData({ id: command.id(), name: values.tagName }))
         setSubmitting(false);
       }}
     >
