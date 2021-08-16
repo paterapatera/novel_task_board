@@ -7,11 +7,9 @@ import { TitleListQueryResultT } from '@/domains/TitleData/Repo'
 import { uuid } from '@/utils/core'
 
 export const TitleMgr = (): JSX.Element => {
-  const { loading, error, data } = useQuery<TitleListQueryResultT>(TitleRepo.ListQuery, {
-    pollInterval: 500,
-  });
-  const [deleteTitleGql] = useMutation<string>(TitleRepo.DeleteQuery);
-  const [saveTitleGql] = useMutation<{ id: string }>(TitleRepo.SaveQuery);
+  const { loading, error, data, refetch } = useQuery<TitleListQueryResultT>(TitleRepo.ListQuery);
+  const [deleteTitleGql] = useMutation<string>(TitleRepo.DeleteQuery, { onCompleted: () => refetch() });
+  const [saveTitleGql] = useMutation<{ id: string }>(TitleRepo.SaveQuery, { onCompleted: () => refetch() });
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error!</p>;
   const args = {
